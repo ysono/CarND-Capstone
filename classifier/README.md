@@ -89,6 +89,13 @@ Now we can finally run `python export_inference_graph.py --input_type image_tens
 
 This supplements the same [walkthrough by Alex Lechner](https://github.com/alex-lechner/Traffic-Light-Classification) linked above.
 
+Configure aws cli if you haven't.
+
+```sh
+brew install awscli    # or equivalent command for your OS
+aws configure
+```
+
 For the first time only, if you're using spot instances and you don't have a volume to persist across those instances, create it. Choose your favorite region where the udacity AMI is available.
 
 ```sh
@@ -123,6 +130,12 @@ INST_HOSTNAME=$(
 aws ec2 attach-volume --device /dev/xvdf --instance-id $INST_ID --volume-id $VOLUME_ID
 ```
 
+Check AWS dashboard to make sure you just did what you want to do.
+
+- [spot requests](https://us-west-1.console.aws.amazon.com/ec2sp/v1/spot/dashboard)
+- [instances](https://us-west-1.console.aws.amazon.com/ec2/v2/home)
+- [volumes](https://us-west-1.console.aws.amazon.com/ec2/v2/home)
+
 Log in, and set up the OS. You have to do this for every new spot instance.
 
 ```sh
@@ -146,7 +159,7 @@ pip install --upgrade dask && pip install tensorflow-gpu==1.4
 
 First time setting up your attached volume:
 
-- `git clone` tensorflow/models; checkout `f7e99c0`; and compile the protobuf files. Or, optionally check out [my branch `ysono/r1.4-with-protos`](https://github.com/ysono/tensorflow_models/commits/ysono/r1.4-with-protos).
+- `git clone` tensorflow/models; checkout `f7e99c0`; and compile the protobuf files. Or, optionally check out [this branch `ysono/r1.4-with-protos`](https://github.com/ysono/tensorflow_models/commits/ysono/r1.4-with-protos).
 - Upload the datasets. You need the `*.record` files and the label map `*.pbtxt` only.
 - Upload the config files.
 - Download the models.
@@ -155,10 +168,12 @@ Now train!
 
 ```sh
 cd path/to/tensorflow_models/research
-export PYTHONPATH=$PYTHONPATH:`pwd`:`pwd`/slim    # Run once per ssh session
+export PYTHONPATH=$PYTHONPATH:`pwd`:`pwd`/slim    # Run once per ssh session, or put it in ~/.profile
 # python object_detection/builders/model_builder_test.py   # Optional test. Run once per spot instance
 
-# Note, I could NOT use `screen` for running `train.py`. It would always run out of memory. Hopefully you have stable connection for a few hours.
+# You should use a `screen` in which to train.
+# For faster rcnn with inception, each step typically takes 1 to 2 seconds. 1sec * 10000 / 3600sec/hour = 2.8hour
+# For ssd with inception, each step typically takes under 0.5 second. 0.5sec * 10000 / 3600sec/hour = 1.4hour
 python object_detection/train.py .....
 ```
 
@@ -184,9 +199,9 @@ Freezing:
 You have to make modifications to the tensorflow models repo at `f7e99c0`,
 whether you are freezing with 1.3 or 1.4!
 
-For 1.4, see [my branch `ysono/export-with-r1.4`](https://github.com/ysono/tensorflow_models/commits/ysono/export-with-r1.4)
+For 1.4, see [this branch `ysono/export-with-r1.4`](https://github.com/ysono/tensorflow_models/commits/ysono/export-with-r1.4)
 
-For 1.3, see [my branch `ysono/export-with-r1.3`](https://github.com/ysono/tensorflow_models/commits/ysono/export-with-r1.3)
+For 1.3, see [this branch `ysono/export-with-r1.3`](https://github.com/ysono/tensorflow_models/commits/ysono/export-with-r1.3)
 
 Though others have had success freezing using tensorflow 1.4, I had to use 1.3 for it to work in Udacity's VM for the project with ROS, tf 1.3, etc installed.
 
@@ -197,13 +212,19 @@ source activate tf13
 pip install tensorflow-gpu==1.3 matplotlib pillow lxml
 
 cd path/to/tensorflow_models/research
-export PYTHONPATH=$PYTHONPATH:`pwd`:`pwd`/slim    # Run once per ssh session
+export PYTHONPATH=$PYTHONPATH:`pwd`:`pwd`/slim    # Run once per ssh session, or put it in ~/.profile
 
-# Make modifications to some python files, or check out one of my branches, as explained above.
+# Make modifications to some python files, or check out one of ysono branches, as explained above.
 
 python object_detection/export_inference_graph.py ......
 ```
 
 ```sh
 scp -i ~/.ssh/*pem ubuntu@$INST_HOSTNAME:/path/to/frozen_inference_graph.pb .
+```
+
+Make sure to terminate your spot requests
+
+```sh
+aws ec2 terminate-instances --instance-ids $INST_ID
 ```
