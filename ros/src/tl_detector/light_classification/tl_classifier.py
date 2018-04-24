@@ -40,8 +40,7 @@ class TLClassifier(object):
         scores = np.squeeze(scores)
         classes = np.squeeze(classes).astype(np.int32)
 
-        rospy.loginfo('SCORES: {}'.format(scores))
-        rospy.loginfo('CLASSES: {}'.format(classes))
+        # rospy.logdebug('score: {}, class: {}'.format(scores[0], classes[0]))
 
         if scores[0] > self.threshold:
             if classes[0] == 1:
