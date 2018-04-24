@@ -72,3 +72,15 @@ cd CarND-Capstone/ros
 roslaunch launch/site.launch
 ```
 5. Confirm that traffic light detection works on real life images
+
+### Contributors
+
+(Thus far)
+
+- Yoshiaki Sono, yoshiaki.sono@gmail.com, @ysono
+- Hugo Villanúa Vega, hugo.villanua@gmail.com, @hvillanua
+- Varun Rao, varunoncruise@gmail.com, @vrao87
+
+### Walkthrough on training
+
+[Here](classifier/README.md)

@@ -44,7 +44,7 @@ Now we need to change the path references of the config file.
 Change the `fine_tune_checkpoint` variable to `fine_tune_checkpoint: "models/faster_rcnn_inception_v2_coco_2018_01_28/model.ckpt"`
 
 The actual file to use for training and validation can be changed, in this example we'll configure it so that it uses real image data to train and simulator data to validate.
-Change the `train_input_reader` variable to 
+Change the `train_input_reader` variable to
 ```
 train_input_reader: {
   tf_record_input_reader {
@@ -82,3 +82,128 @@ Open the `export_inference_graph.py` and comment lines 96-98, they should look l
 
 This is due to the flags attribute not existing in tf 1.3 (they were introduced in 1.4), but don't worry they don't break anything.
 Now we can finally run `python export_inference_graph.py --input_type image_tensor --pipeline_config_path ./models/<model_folder>/train/pipeline.config --trained_checkpoint_prefix ./models/<model_folder>/train/model.ckpt-10000 --output_directory ./frozen_models/<model_name>`.
+
+---
+
+### Additional instructions for using AWS
+
+This supplements the same [walkthrough by Alex Lechner](https://github.com/alex-lechner/Traffic-Light-Classification) linked above.
+
+For the first time only, if you're using spot instances and you don't have a volume to persist across those instances, create it. Choose your favorite region where the udacity AMI is available.
+
+```sh
+VOLUME_ID=$(
+  aws ec2 create-volume --volume-type gp2 --size 40 --region us-west-1 --availability-zone us-west-1a | jq -r .VolumeId
+)
+```
+
+Request a spot instance using udacity's AMI, and attach the volume. Replace with your details, where commented. Run one command at a time, with some time in between.
+
+```sh
+SPOT_INST_REQ_ID=$(
+  aws ec2 request-spot-instances --availability-zone-group us-west-1a --launch-specification '{
+    "ImageId": "ami-47f2f327",              # This is the udacity-carnd-advanced-deep-learning
+    "KeyName": "my-key",                    # Use your key name
+    "SecurityGroupIds": ["sg-1234abcd"],    # Use your security group id
+    "InstanceType": "g3.4xlarge",
+    "Placement": {
+      "AvailabilityZone": "us-west-1a"      # Use your region
+    }
+  }' | jq -r .SpotInstanceRequests[0].SpotInstanceRequestId
+)
+
+INST_ID=$(
+  aws ec2 describe-spot-instance-requests | jq -r ".SpotInstanceRequests | map(select(.SpotInstanceRequestId==\"$SPOT_INST_REQ_ID\")) | .[0].InstanceId"
+)
+
+INST_HOSTNAME=$(
+  aws ec2 describe-instances --instance-id $INST_ID | jq -r .Reservations[0].Instances[0].PublicDnsName
+)
+
+aws ec2 attach-volume --device /dev/xvdf --instance-id $INST_ID --volume-id $VOLUME_ID
+```
+
+Log in, and set up the OS. You have to do this for every new spot instance.
+
+```sh
+ssh -i ~/.ssh/*.pem ubuntu@$INST_HOSTNAME
+```
+
+```sh
+sudo mkdir /mnt/foo
+sudo mount /dev/xvdf1 /mnt/foo
+
+# Just an optional convenience command for copying over dotfiles which you can keep in the attached volume.
+pushd _home-dotfiles/; for f in `find -mindepth 1 -maxdepth 1`; do cp -r $f ~/; done; popd
+
+sudo apt-get install -y protobuf-compiler python-pil python-lxml python-tk
+# If apt-get doesn't work because of a lock, run these, and run `apt-get install` again.
+# sudo rm /var/lib/dpkg/lock
+# sudo dpkg --configure -a
+
+pip install --upgrade dask && pip install tensorflow-gpu==1.4
+```
+
+First time setting up your attached volume:
+
+- `git clone` tensorflow/models; checkout `f7e99c0`; and compile the protobuf files. Or, optionally check out [my branch `ysono/r1.4-with-protos`](https://github.com/ysono/tensorflow_models/commits/ysono/r1.4-with-protos).
+- Upload the datasets. You need the `*.record` files and the label map `*.pbtxt` only.
+- Upload the config files.
+- Download the models.
+
+Now train!
+
+```sh
+cd path/to/tensorflow_models/research
+export PYTHONPATH=$PYTHONPATH:`pwd`:`pwd`/slim    # Run once per ssh session
+# python object_detection/builders/model_builder_test.py   # Optional test. Run once per spot instance
+
+# Note, I could NOT use `screen` for running `train.py`. It would always run out of memory. Hopefully you have stable connection for a few hours.
+python object_detection/train.py .....
+```
+
+Optionally, start a tensorboard, or start a jupyter notebook.
+
+You should wait till the training has started and you can see the steps, or you might see out-of-memory errors.
+
+```sh
+ssh -i ~/.ssh/*pem -L 6006:localhost:6006 -L 8888:localhost:8888 ubuntu@$INST_HOSTNAME
+```
+
+```sh
+tensorboard --logdir <your_path>
+# Go to localhost:6006 on your local machine
+
+cd path/to/tensorflow_models/research/object_detection
+jupyter notebook --no-browser object_detection_tutorial.ipynb
+# Go to localhost:8888 on your local machine. Evaluate an already frozen model. It'll be much faster than evaluating locally.
+```
+
+Freezing:
+
+You have to make modifications to the tensorflow models repo at `f7e99c0`,
+whether you are freezing with 1.3 or 1.4!
+
+For 1.4, see [my branch `ysono/export-with-r1.4`](https://github.com/ysono/tensorflow_models/commits/ysono/export-with-r1.4)
+
+For 1.3, see [my branch `ysono/export-with-r1.3`](https://github.com/ysono/tensorflow_models/commits/ysono/export-with-r1.3)
+
+Though others have had success freezing using tensorflow 1.4, I had to use 1.3 for it to work in Udacity's VM for the project with ROS, tf 1.3, etc installed.
+
+```sh
+# Only if you're using 1.3, create a conda env, once per spot instance.
+conda create -n tf13 python
+source activate tf13
+pip install tensorflow-gpu==1.3 matplotlib pillow lxml
+
+cd path/to/tensorflow_models/research
+export PYTHONPATH=$PYTHONPATH:`pwd`:`pwd`/slim    # Run once per ssh session
+
+# Make modifications to some python files, or check out one of my branches, as explained above.
+
+python object_detection/export_inference_graph.py ......
+```
+
+```sh
+scp -i ~/.ssh/*pem ubuntu@$INST_HOSTNAME:/path/to/frozen_inference_graph.pb .
+```
