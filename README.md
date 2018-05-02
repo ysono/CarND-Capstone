@@ -72,3 +72,24 @@ cd CarND-Capstone/ros
 roslaunch launch/site.launch
 ```
 5. Confirm that traffic light detection works on real life images
+
+
+
+### Architecture Introduction
+
+This method is using 2 seperate DNNs, responsible for detecting traffic lights and recognizing the color of traffic lights respectively.  
+
+A pre-trained model from model-zoo is used for traffic ligts detection, since there's no need to train the model, we can simply switch to any model we wanna try. The implementation is in lights_detector.py
+
+A second DNN is built to recognize the color of traffic lights, it's relatively small, so the training process is very fast. Training data can be found [here](https://carnd.slack.com/files/U6WJWH7S7/F836LL4G1/tl_classifier_data.zip). The implemetation is in lights_classifier.py, training part is in lights_classifier_trainning.py
+
+Finally, perception_pipeline.py is a complete pipeline to recognize the color directly from an image.
+
+The advantages of this architecture is:
+
+1. The training process is very fast, less 5 second on GTX 1080 card
+
+2. Easy to get training data and label, and not too many data are needed.
+
+3. Can easily change to other object recognition model from model zoo (use sdd mobilenet v1 currently)
+
