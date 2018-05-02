@@ -75,11 +75,11 @@ roslaunch launch/site.launch
 
 ### Contributors
 
-(Thus far)
-
-- Yoshiaki Sono, yoshiaki.sono@gmail.com, @ysono
-- Hugo Villanúa Vega, hugo.villanua@gmail.com, @hvillanua
-- Varun Rao, varunoncruise@gmail.com, @vrao87
+- Yoshiaki Sono, yoshiaki.sono@gmail.com, https://github.com/ysono
+- Hugo Villanúa Vega, hugo.villanua@gmail.com, https://github.com/hvillanua
+- Varun Rao, varunoncruise@gmail.com, https://github.com/vrao87
+- Andrew Matuk, veon.ua@gmail.com, https://github.com/veonua
+- Li Zhang, elisee1146@gmail.com, https://github.com/Andcircle
 
 ### Walkthrough on training
 
