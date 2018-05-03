@@ -130,7 +130,7 @@ class WaypointUpdater(object):
             for i in range(0, (abs(closest_wp_idx - self.stop_idx))):
                 # get the distance to the i-th way point
                 # i_point_distance = self.distances_to_end(self.waypoints, self.closest_waypoint, i)
-                if (distance_to_stop_line[0]) > 0.1:
+                if (distance_to_stop_line[0]) > STOP_LINE_OFFSET:
                     i_point_target_velocity = distance_to_stop_line[i]/distance_to_stop_line[0]
                     i_point_target_velocity = (start_point_velocity * i_point_target_velocity)
 
@@ -170,7 +170,7 @@ class WaypointUpdater(object):
             stop_idx = -1
         else:
             # Stop 2 waypoints before closest waypoint to the traffic light
-            stop_idx = max(self.traffic_wp_idx - 3, 0)
+            stop_idx = max(self.traffic_wp_idx - STOP_INDEX_OFFSET, 0)
 
         return stop_idx
 
