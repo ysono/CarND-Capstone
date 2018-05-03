@@ -23,16 +23,17 @@ as well as to verify your TL classifier.
 TODO (for Yousuf and Aaron): Stopline location for each traffic light.
 '''
 
-LOOKAHEAD_WPS = 100 # Number of waypoints we will publish. You can change this number
-MAX_DECEL = 5.0
-COMF_DECEL = 2.5
-STOP_LINE_OFFSET = 3.5
-STOP_INDEX_OFFSET = 3
-MIN_VELOCITY = 5.0
+LOOKAHEAD_WPS = 100         # Number of waypoints we will publish. You can change this number
+MAX_DECEL = 6.0             # Maximum deceleration allowed during braking
+COMF_DECEL = 2.5            # A comfortable rate of deceleration
+STOP_LINE_OFFSET = 3.5      # Distance before the stop line to actually stop the car
+STOP_INDEX_OFFSET = 2       # Number of Waypoints indices within which to stop before stop line
+MIN_VELOCITY = 3.0          # Minimum velocity over which a late red light will be ignored
 
 DRIVE_STATE_INIT = 0
-DRIVE_STATE_DRIVING = 1
+DRIVE_STATE_DRIVING = 1     # Driving states
 DRIVE_STATE_STOPPING = 2
+REF_VELOCITY = 5.0          # Reference velocity at which to drive the car normally
 
 class WaypointUpdater(object):
     def __init__(self):
@@ -45,7 +46,7 @@ class WaypointUpdater(object):
         self.traffic_wp_idx = None
         self.driving_state = DRIVE_STATE_INIT
         self.current_velocity = 0.0
-        self.closest_waypoint = -1
+        self.closest_wp_idx = -1
         self.stop_idx = -1
 
         rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
@@ -65,20 +66,19 @@ class WaypointUpdater(object):
         while not rospy.is_shutdown():
             if self.pose and self.waypoints and self.waypoints_2d and self.waypoint_tree:
                 # Get closest waypoint
-                self.closest_waypoint = self.get_closest_waypoint_idx()
-                self.drive_state_machine(self.closest_waypoint)
-                self.publish_waypoints(self.closest_waypoint)
+                self.closest_wp_idx = self.get_closest_waypoint_idx()
+                self.drive_state_machine()
+                self.publish_waypoints()
 
             rate.sleep()
 
-    def drive_state_machine(self, closest_waypoint_idx):
-        farthest_wp_idx = closest_waypoint_idx + LOOKAHEAD_WPS
-        if closest_waypoint_idx > 0:
-            self.stop_idx = self.get_stop_idx(closest_waypoint_idx)
-
+    def drive_state_machine(self):
+        farthest_wp_idx = self.closest_wp_idx + LOOKAHEAD_WPS
+        if self.closest_wp_idx > 0:
+            self.stop_idx = self.get_stop_idx(self.closest_wp_idx)
             if self.stop_idx > 0:
                 # red light ahead, near or far
-                distance_to_stop_line = self.distances_to_end(self.waypoints[closest_waypoint_idx : self.stop_idx])
+                distance_to_stop_line = self.distances_to_end(self.waypoints[self.closest_wp_idx : self.stop_idx])
                 comfort_stopping_distance = (self.current_velocity * self.current_velocity)
                 comfort_stopping_distance = comfort_stopping_distance / COMF_DECEL
                 minimum_stop_distance = self.current_velocity * self.current_velocity
@@ -115,7 +115,8 @@ class WaypointUpdater(object):
                    rospy.loginfo("Changing to DRIVING state")
                 self.driving_state = DRIVE_STATE_DRIVING
 
-    def publish_waypoints(self, closest_wp_idx):
+    def publish_waypoints(self):
+        closest_wp_idx = self.closest_wp_idx
         start_point_velocity = self.get_waypoint_velocity(self.waypoints[closest_wp_idx])
         # get the distance from each waypoint till the stop line
         distance_to_stop_line = self.distances_to_end(self.waypoints[closest_wp_idx : self.stop_idx])
@@ -140,7 +141,7 @@ class WaypointUpdater(object):
             # Set the velocity to reference velocity if driving state is not stopping
             for i in range(closest_wp_idx, closest_wp_idx + LOOKAHEAD_WPS):
                 if i < len(self.waypoints):
-                    self.set_waypoint_velocity(self.waypoints, i, 5.0)
+                    self.set_waypoint_velocity(self.waypoints, i, REF_VELOCITY)
 
         # now publish the waypoints
         # get LOOKAHEAD_WPS number of waypoints ahead of the car
