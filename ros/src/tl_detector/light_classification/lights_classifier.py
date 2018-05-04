@@ -1,6 +1,7 @@
 from keras.models import load_model
 import time
 import rospy
+from styx_msgs.msg import TrafficLight
 import numpy as np
 
 class Lights_Classifier(object):
@@ -28,8 +29,8 @@ class Lights_Classifier(object):
                 red_num += 1
         
         if (red_num>0 and red_num==len(cropped_lights)) or red_num>=2:
-            return 0
+            return TrafficLight.RED
         
-        return 2     # for now, no red light is green light
+        return TrafficLight.GREEN     # for now, no red light is green light
 
     
