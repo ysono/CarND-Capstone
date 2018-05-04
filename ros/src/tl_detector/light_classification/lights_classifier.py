@@ -17,11 +17,11 @@ class Lights_Classifier(object):
         prediction=[]
         if len(cropped_lights)>0:
             t0 = time.time()
-            rospy.loginfo("Shape of Classifier Input: {}".format(cropped_lights.shape))
+            rospy.logdebug("Shape of Classifier Input: {}".format(cropped_lights.shape))
             prediction = self.model.predict(cropped_lights,verbose=0)
             t1 = time.time()
             classify_time = (t1-t0)*1000
-            print("Classify time:{}".format(classify_time))
+            rospy.logdebug("Classify time:{}".format(classify_time))
         
         for r in prediction:
             if r[0]>0.5:
