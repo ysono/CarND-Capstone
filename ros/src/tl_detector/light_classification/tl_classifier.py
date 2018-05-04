@@ -5,9 +5,8 @@ import rospy
 
 class TLClassifier(object):
     def __init__(self):
-        #TODO load classifier
-        self.detector = Lights_Detector('light_classification/frozen_inference_graph_mobilenetV1.pb')
-        self.classifier = Lights_Classifier('light_classification/tl_classifier_simulator.h5')
+        self.detector = Lights_Detector(rospy.get_param('~detector_model_path'))
+        self.classifier = Lights_Classifier(rospy.get_param('~classifier_model_path'))
 
     def get_classification(self, img):
         """Determines the color of the traffic light in the image

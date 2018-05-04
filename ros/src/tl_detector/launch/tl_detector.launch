@@ -1,4 +1,7 @@
 <?xml version="1.0"?>
 <launch>
-    <node pkg="tl_detector" type="tl_detector.py" name="tl_detector" output="screen" cwd="node"/>
+    <node pkg="tl_detector" type="tl_detector.py" name="tl_detector" output="screen" cwd="node">
+        <param name="detector_model_path" value="light_classification/frozen_inference_graph_mobilenetV1.pb" />
+        <param name="classifier_model_path" value="light_classification/tl_classifier_simulator.h5" />
+    </node>
 </launch>

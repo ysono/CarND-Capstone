@@ -1,6 +1,7 @@
 import tensorflow as tf
 import numpy as np
 from PIL import ImageColor
+import rospy
 import time
 import cv2
 
@@ -123,13 +124,13 @@ class Lights_Detector(object):
         img = np.expand_dims(np.asarray(img, dtype=np.uint8), 0)
         boxes,scores,classes,detect_time = self.detect(img)
         
-        print("Detect time:{}".format(detect_time))
+        rospy.logdebug("Detect time:{}".format(detect_time))
 
         # Filter boxes with a confidence score less than `confidence_cutoff`
         boxes, scores,classes = self.filter_boxes(boxes, scores, classes)
         box_coords = self.to_image_coords(boxes, height, width)
         crop_imgs = []
-#         print(box_coords)
+#         rospy.logdebug(box_coords)
         for box in box_coords:
             top,left,bottom,right = box
             crop_img = img[0,int(top):int(bottom), int(left):int(right)]

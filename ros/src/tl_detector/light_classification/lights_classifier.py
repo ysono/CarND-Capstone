@@ -1,6 +1,7 @@
 from keras.models import load_model
 import time
 import rospy
+from styx_msgs.msg import TrafficLight
 import numpy as np
 
 class Lights_Classifier(object):
@@ -17,19 +18,19 @@ class Lights_Classifier(object):
         prediction=[]
         if len(cropped_lights)>0:
             t0 = time.time()
-            rospy.loginfo("Shape of Classifier Input: {}".format(cropped_lights.shape))
+            rospy.logdebug("Shape of Classifier Input: {}".format(cropped_lights.shape))
             prediction = self.model.predict(cropped_lights,verbose=0)
             t1 = time.time()
             classify_time = (t1-t0)*1000
-            print("Classify time:{}".format(classify_time))
+            rospy.logdebug("Classify time:{}".format(classify_time))
         
         for r in prediction:
             if r[0]>0.5:
                 red_num += 1
         
         if (red_num>0 and red_num==len(cropped_lights)) or red_num>=2:
-            return 0
+            return TrafficLight.RED
         
-        return 2     # for now, no red light is green light
+        return TrafficLight.GREEN     # for now, no red light is green light
 
     
