@@ -33,7 +33,7 @@ MIN_VELOCITY = 3.0          # Minimum velocity over which a late red light will 
 DRIVE_STATE_INIT = 0
 DRIVE_STATE_DRIVING = 1     # Driving states
 DRIVE_STATE_STOPPING = 2
-REF_VELOCITY = 5.0          # Reference velocity at which to drive the car normally
+REF_VELOCITY = 10.0          # Reference velocity at which to drive the car normally
 
 class WaypointUpdater(object):
     def __init__(self):
