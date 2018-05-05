@@ -62,7 +62,7 @@ class WaypointUpdater(object):
         self.loop()
 
     def loop(self):
-        rate = rospy.Rate(5)
+        rate = rospy.Rate(50)
         while not rospy.is_shutdown():
             if self.pose and self.waypoints and self.waypoints_2d and self.waypoint_tree:
                 # Get closest waypoint
@@ -81,6 +81,7 @@ class WaypointUpdater(object):
                 distance_to_stop_line = self.distances_to_end(self.waypoints[self.closest_wp_idx : self.stop_idx])
                 comfort_stopping_distance = (self.current_velocity * self.current_velocity)
                 comfort_stopping_distance = comfort_stopping_distance / COMF_DECEL
+
                 minimum_stop_distance = self.current_velocity * self.current_velocity
                 minimum_stop_distance = minimum_stop_distance / MAX_DECEL
                 print(distance_to_stop_line[0])
