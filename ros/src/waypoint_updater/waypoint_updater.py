@@ -132,8 +132,11 @@ class WaypointUpdater(object):
                 # get the distance to the i-th way point
                 # i_point_distance = self.distances_to_end(self.waypoints, self.closest_waypoint, i)
                 if (distance_to_stop_line[0]) > STOP_LINE_OFFSET:
-                    i_point_target_velocity = distance_to_stop_line[i]/distance_to_stop_line[0]
-                    i_point_target_velocity = (start_point_velocity * i_point_target_velocity)
+                    if self.current_velocity < 0.8:
+                        i_point_target_velocity = -10.0
+                    else:
+                        i_point_target_velocity = distance_to_stop_line[i]/distance_to_stop_line[0]
+                        i_point_target_velocity = (start_point_velocity * i_point_target_velocity)
 
                 else:
                     i_point_target_velocity = -10.0     # negative stops car 'creep' when stopped
