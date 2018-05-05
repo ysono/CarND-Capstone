@@ -25,8 +25,8 @@ TODO (for Yousuf and Aaron): Stopline location for each traffic light.
 
 LOOKAHEAD_WPS = 100         # Number of waypoints we will publish. You can change this number
 MAX_DECEL = 6.0             # Maximum deceleration allowed during braking
-COMF_DECEL = 2.5            # A comfortable rate of deceleration
-STOP_LINE_OFFSET = 3.5      # Distance before the stop line to actually stop the car
+COMF_DECEL = 2              # A comfortable rate of deceleration
+STOP_LINE_OFFSET = 1.5      # Distance before the stop line to actually stop the car
 STOP_INDEX_OFFSET = 2       # Number of Waypoints indices within which to stop before stop line
 MIN_VELOCITY = 3.0          # Minimum velocity over which a late red light will be ignored
 
@@ -251,7 +251,7 @@ class WaypointUpdater(object):
         dists_reversed = [0]
 
         for i in range(len_wps - 1):
-            wp_idx = len_wps - STOP_INDEX_OFFSET - i
+            wp_idx = len_wps - 2 - i
 
             incremental_dist = dl(
                 waypoints[wp_idx].pose.pose.position,
