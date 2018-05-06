@@ -33,7 +33,7 @@ MIN_VELOCITY = 3.0          # Minimum velocity over which a late red light will 
 DRIVE_STATE_INIT = 0
 DRIVE_STATE_DRIVING = 1     # Driving states
 DRIVE_STATE_STOPPING = 2
-REF_VELOCITY = 10.0          # Reference velocity at which to drive the car normally
+REF_VELOCITY = 14.0          # Reference velocity at which to drive the car normally
 
 class WaypointUpdater(object):
     def __init__(self):
@@ -84,7 +84,6 @@ class WaypointUpdater(object):
 
                 minimum_stop_distance = self.current_velocity * self.current_velocity
                 minimum_stop_distance = minimum_stop_distance / MAX_DECEL
-                print(distance_to_stop_line[0])
                 if (distance_to_stop_line[0] - STOP_LINE_OFFSET) < comfort_stopping_distance:
                     if self.driving_state == DRIVE_STATE_DRIVING and \
                             (distance_to_stop_line[0] - STOP_LINE_OFFSET) < minimum_stop_distance:
