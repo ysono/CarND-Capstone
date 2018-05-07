@@ -48,6 +48,7 @@ class WaypointUpdater(object):
         self.current_velocity = 0.0
         self.closest_wp_idx = -1
         self.stop_idx = -1
+        self.reference_vel = []
 
         rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
         rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
@@ -144,7 +145,7 @@ class WaypointUpdater(object):
             # Set the velocity to reference velocity if driving state is not stopping
             for i in range(closest_wp_idx, closest_wp_idx + LOOKAHEAD_WPS):
                 if i < len(self.waypoints):
-                    self.set_waypoint_velocity(self.waypoints, i, REF_VELOCITY)
+                    self.set_waypoint_velocity(self.waypoints, i, self.reference_vel[i])
 
         # now publish the waypoints
         # get LOOKAHEAD_WPS number of waypoints ahead of the car
@@ -235,6 +236,9 @@ class WaypointUpdater(object):
                 for waypoint in waypoints.waypoints
             ]
             self.waypoint_tree = KDTree(self.waypoints_2d)
+
+        for i, wp in enumerate(waypoints.waypoints):
+            self.reference_vel.append(wp.twist.twist.linear.x)
 
     def traffic_cb(self, msg):
         if self.traffic_wp_idx != msg.data:
