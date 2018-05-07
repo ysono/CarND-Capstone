@@ -91,28 +91,29 @@ class WaypointUpdater(object):
                         if self.current_velocity < MIN_VELOCITY and \
                                 distance_to_stop_line[0] > STOP_LINE_OFFSET:
                             # Possible to stop
-                            rospy.loginfo(" Emergency stop ")
+                            # rospy.loginfo(" Emergency stop ")
                             self.driving_state = DRIVE_STATE_STOPPING
                         else:
-                            rospy.loginfo("Ignoring late red light")
+                            # rospy.loginfo("Ignoring late red light")
                             self.driving_state = DRIVE_STATE_DRIVING
                     else:
                         # should slow down and stop now
-                        if self.driving_state != DRIVE_STATE_STOPPING:
-                            rospy.loginfo("Changing to STOPPING state")
+                        # if self.driving_state != DRIVE_STATE_STOPPING:
+                        #    rospy.loginfo("Changing to STOPPING state")
                         self.driving_state = DRIVE_STATE_STOPPING
                 else:
                     if self.driving_state == DRIVE_STATE_STOPPING:
                         # we are already stopping, stay in this state if the light is still red
-                        rospy.loginfo("Holding STOPPING state")
+                        self.driving_state = DRIVE_STATE_STOPPING
+                        # rospy.loginfo("Holding STOPPING state")
                     else:
-                        if self.driving_state != DRIVE_STATE_DRIVING:
-                            rospy.loginfo("Changing to DRIVING state")
+                        # if self.driving_state != DRIVE_STATE_DRIVING:
+                        #   rospy.loginfo("Changing to DRIVING state")
                         self.driving_state = DRIVE_STATE_DRIVING
             else:
                 # no red light
-                if self.driving_state != DRIVE_STATE_DRIVING:
-                   rospy.loginfo("Changing to DRIVING state")
+                # if self.driving_state != DRIVE_STATE_DRIVING:
+                #   rospy.loginfo("Changing to DRIVING state")
                 self.driving_state = DRIVE_STATE_DRIVING
 
     def publish_waypoints(self):
@@ -126,7 +127,6 @@ class WaypointUpdater(object):
             # setting desired velocity at each waypoint as a ratio of remaining distance to stop
             # from the respective waypoint to the total distance from current position
             # to stop line
-            # print(closest_wp_idx, self.stop_idx)
             for i in range(0, (abs(closest_wp_idx - self.stop_idx))):
                 # get the distance to the i-th way point
                 # i_point_distance = self.distances_to_end(self.waypoints, self.closest_waypoint, i)

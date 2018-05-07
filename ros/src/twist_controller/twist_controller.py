@@ -34,8 +34,8 @@ class Controller(object):
         tau = LPF_ACCEL_TAU # 1/(2pi*tau) = cutoff frequency
         ts = 1./self.sampling_rate # Sample time
 
-        rospy.logwarn('TwistController: Sampling rate = ' + str(self.sampling_rate))
-        rospy.logwarn('TwistController: ts  = ' + str(ts))
+        # rospy.logwarn('TwistController: Sampling rate = ' + str(self.sampling_rate))
+        # rospy.logwarn('TwistController: ts  = ' + str(ts))
 
         self.prev_vel = 0.0
         self.current_accel = 0.0
