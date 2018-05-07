@@ -74,6 +74,29 @@ class WaypointUpdater(object):
             rate.sleep()
 
     def drive_state_machine(self):
+        """Drive state machine keeps a track of the driving state of the car. The state could
+           be either:
+              Driving - keep driving at reference velocity
+              Stopping - slow down to stop/also already stopped
+            A comfortable stopping distance is assumed based on a comfortable rate of
+            deceleration. If there is no red light within comfortable stopping distance,
+            then retain DRIVING state
+            if there is a red light within the distance from which the car can stop comfortably
+            then state is changed to STOPPING
+            Equation:
+                if travelling at velocity v, distance covered in time t is given by
+                    d = v * t
+                Time taken to stop when travelling at velocity v at a constant deceleration a, is
+                    t = v / a
+                from first equation,
+                    d = v * v/a = v^2/a    (a is assumed comfortable acceleration)
+
+            Further a minimum stopping distance is assumed based on maximum deceleration.
+            If the available distance to stop is less than minimum stopping distance in case
+            of a late red light, then change to STOPPING state only if car is travelling at velocity less than a certain
+            threshold. Otherwise keep going in order to not end up being stopped in the middle of the junction.
+
+        """
         farthest_wp_idx = self.closest_wp_idx + LOOKAHEAD_WPS
         if self.closest_wp_idx > 0:
             self.stop_idx = self.get_stop_idx(self.closest_wp_idx)
