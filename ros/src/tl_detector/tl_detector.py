@@ -91,7 +91,7 @@ class TLDetector(object):
             self.state = state
         elif self.state_count >= STATE_COUNT_THRESHOLD:
             if self.state_count == STATE_COUNT_THRESHOLD:
-                rospy.loginfo('tl_detector detected traffic light change, {}, {}'.format(light_wp, state))
+                rospy.loginfo('light change, wp {}, state {}'.format(light_wp, state))
 
             self.last_state = self.state
             light_wp = light_wp if state == TrafficLight.RED else -1
