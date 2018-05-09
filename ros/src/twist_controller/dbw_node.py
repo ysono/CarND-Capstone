@@ -31,11 +31,20 @@ that we have created in the `__init__` function.
 
 '''
 
+DBW_SAMPLING_RATE = 50
+
 class DBWNode(object):
     def __init__(self):
         rospy.init_node('dbw_node')
 
+        self.dbw_enabled = False
+        self.linear_vel = None
+        self.angular_vel = None
+        self.current_vel = None
+        self.sampling_rate = DBW_SAMPLING_RATE # 50Hz
+
         self.controller = Controller(
+            sampling_rate = self.sampling_rate,
             vehicle_mass = rospy.get_param('~vehicle_mass', 1736.35),
             fuel_capacity = rospy.get_param('~fuel_capacity', 13.5),
             brake_deadband = rospy.get_param('~brake_deadband', .1),
@@ -54,10 +63,7 @@ class DBWNode(object):
         self.brake_pub = rospy.Publisher('/vehicle/brake_cmd',
                                          BrakeCmd, queue_size=1)
 
-        self.dbw_enabled = False
-        self.linear_vel = None
-        self.angular_vel = None
-        self.current_vel = None
+
 
         rospy.Subscriber('/vehicle/dbw_enabled', Bool, self.dbw_enabled_cb)
         rospy.Subscriber('/twist_cmd', TwistStamped, self.twist_cb)
@@ -79,7 +85,7 @@ class DBWNode(object):
             self.controller.reset()
 
     def loop(self):
-        rate = rospy.Rate(50) # 50Hz
+        rate = rospy.Rate(DBW_SAMPLING_RATE) # 50Hz
         while not rospy.is_shutdown():
             # Get predicted throttle, brake, and steering using `twist_controller`
             # You should only publish the control commands if dbw is enabled
