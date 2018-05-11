@@ -33,7 +33,6 @@ MIN_VELOCITY = 3.0          # Minimum velocity over which a late red light will 
 DRIVE_STATE_INIT = 0
 DRIVE_STATE_DRIVING = 1     # Driving states
 DRIVE_STATE_STOPPING = 2
-REF_VELOCITY = 14.0          # Reference velocity at which to drive the car normally
 
 class WaypointUpdater(object):
     def __init__(self):
@@ -65,7 +64,7 @@ class WaypointUpdater(object):
     def loop(self):
         rate = rospy.Rate(50)
         while not rospy.is_shutdown():
-            if self.pose and self.waypoints and self.waypoints_2d and self.waypoint_tree:
+            if self.pose and self.waypoints and self.waypoints_2d and self.waypoint_tree and self.traffic_wp_idx is not None:
                 # Get closest waypoint
                 self.closest_wp_idx = self.get_closest_waypoint_idx()
                 self.drive_state_machine()
@@ -265,7 +264,7 @@ class WaypointUpdater(object):
 
     def traffic_cb(self, msg):
         if self.traffic_wp_idx != msg.data:
-            rospy.loginfo('waypoint_updater received new traffic wp {}'.format(msg.data))
+            rospy.loginfo('new traffic wp {}'.format(msg.data))
         self.traffic_wp_idx = msg.data
 
     def obstacle_cb(self, msg):

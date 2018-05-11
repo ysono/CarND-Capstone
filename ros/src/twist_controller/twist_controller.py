@@ -32,14 +32,14 @@ class Controller(object):
         self.sampling_rate = sampling_rate
 
         tau = LPF_ACCEL_TAU # 1/(2pi*tau) = cutoff frequency
-        ts = 1./self.sampling_rate # Sample time
+        self.sampling_time = 1./self.sampling_rate
 
         # rospy.logwarn('TwistController: Sampling rate = ' + str(self.sampling_rate))
-        # rospy.logwarn('TwistController: ts  = ' + str(ts))
+        # rospy.logwarn('TwistController: Sampling time = ' + str(self.sampling_time))
 
         self.prev_vel = 0.0
         self.current_accel = 0.0
-        self.acc_lpf = LowPassFilter(tau, ts)
+        self.acc_lpf = LowPassFilter(tau, self.sampling_time)
 
         self.brake_torque_const = (self.vehicle_mass + self.fuel_capacity * GAS_DENSITY) * self.wheel_radius
 
@@ -68,7 +68,6 @@ class Controller(object):
             self.reset()
             return None
 
-        sampling_time = 1./self.sampling_rate
         vel_error = linear_vel - current_vel
 
         # calculate current acceleration and smooth using lpf
@@ -79,13 +78,13 @@ class Controller(object):
         self.current_accel = self.acc_lpf.get()
 
         # use velocity controller compute desired accelaration
-        desired_accel = self.pid_spd_ctl.step(vel_error, sampling_time)
+        desired_accel = self.pid_spd_ctl.step(vel_error, self.sampling_time)
 
         if desired_accel > 0.0:
             if desired_accel < self.accel_limit:
-                throttle = self.accel_pid.step(desired_accel - self.current_accel, sampling_time)
+                throttle = self.accel_pid.step(desired_accel - self.current_accel, self.sampling_time)
             else:
-                throttle = self.accel_pid.step(self.accel_limit - self.current_accel, sampling_time)
+                throttle = self.accel_pid.step(self.accel_limit - self.current_accel, self.sampling_time)
             brake = 0.0
         else:
             throttle = 0.0
